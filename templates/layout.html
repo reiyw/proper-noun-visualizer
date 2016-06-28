@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Proper Noun Visualizer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.0/awesomplete.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.0/awesomplete.min.js"></script>
+    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="page">
+        <h1>Proper Noun Visualizer</h1>
+        <div class="form">
+            <form action="" method="post">
+                <input type="text" name="word" class="awesomplete" list="nouns" value="{{ word if word else '' }}" placeholder="Type any proper noun" />
+                    <datalist id="nouns">
+                        {% for word in words %}
+                        <option value="{{ word }}"></option>
+                        {% endfor %}
+                    </datalist>
+                <input type="submit" value="Visualize" />
+            </form>
+        </div>
+        {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% if data %}
+        <div id="cloud" style="width:640px;height:450px;"></div>
+        <div id="details" style="width:640px;text-align:center;line-height:2em;margin-top:0.5em"></div>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.0.5/wordcloud2.min.js"></script>
+        <script>
+            var data = {{ data|safe }};
+
+            WordCloud(document.getElementById("cloud"), { list: data });
+
+            var word = "{{ word|safe }}";
+            var most_similar = {{ most_similar|safe }};
+            var clicked = function(ev) {
+                if (ev.target.nodeName === "SPAN") {
+                    console.log("fuga");
+                    var tag = ev.target.textContent;
+                    var tagElem;
+                    if (most_similar.some(function(el) { if (el[0] === tag) {tagElem = el; return true;} return false; })) {
+                        document.getElementById("details").innerText = "Cosine similarity between “" + word + "” and “" + tag + "” is " + tagElem[1];
+                    }
+                } else {
+                    document.getElementById("details").innerText = "";
+                }
+            }
+            document.getElementById("cloud").addEventListener("click", clicked)
+        </script>
+        {% endif %}
+    </div>
+</body>
+
+</html>
